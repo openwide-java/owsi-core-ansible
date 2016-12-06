@@ -87,3 +87,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# ansible
+*.retry
+log/
+dependencies/
+
+!.gitkeep

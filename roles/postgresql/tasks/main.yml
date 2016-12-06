@@ -1,0 +1,15 @@
+- name: "postgresql · pgdg · install pgdg {{ postgresql_versions | join(', ') }}"
+  include: pgdg_repo_item.yml
+  with_items: "{{ postgresql_versions }}"
+  loop_control:
+    loop_var: pgdg_version
+  become: yes
+  become_user: root
+
+- name: "postgresql · rpm · install {{ postgresql_versions | join(', ') }}" 
+  include: rpm_item.yml
+  with_items: "{{ postgresql_versions }}"
+  loop_control:
+    loop_var: postgresql_version
+  become: yes
+  become_user: root

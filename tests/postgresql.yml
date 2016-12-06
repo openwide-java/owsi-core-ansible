@@ -1,0 +1,9 @@
+- hosts: all
+  roles: 
+    - role: postgresql
+      postgresql_versions:
+        - "9.2"
+        - "9.3"
+        - "9.4"
+        - "9.5"
+        - "9.6"

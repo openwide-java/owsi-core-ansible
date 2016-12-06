@@ -1,0 +1,9 @@
+- include_vars: rpm_item_vars.yml
+
+- name: "postgresql · {{ _postgresql_version }} · rpm install"
+  package:
+    name: "{{ package }}"
+    state: installed
+  with_items: "{{ postgresql_packages + postgresql_default_packages }}"
+  loop_control:
+    loop_var: package

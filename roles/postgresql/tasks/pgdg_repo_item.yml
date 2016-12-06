@@ -1,0 +1,24 @@
+- include_vars: pgdg_repo_item_vars.yml
+
+- name: check pgdg version
+  fail:
+    msg: "pgdg version must be one of {{ _pgdg_available_versions | join(', ')  }}"
+  when: _pgdg_version not in _pgdg_available_versions
+
+- name: "pgdg · {{ _pgdg_version }} · rpm key"
+  copy:
+    dest: "{{ _pgdg_key_dest }}"
+    src: "{{ _pgdg_key_src }}"
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+
+- name: "pgdg · {{ _pgdg_version }} · .repo"
+  yum_repository:
+    name: pgdg{{ _pgdg_version_stripped }}
+    description: PostgreSQL {{ _pgdg_version }} $releasever - $basearch
+    baseurl: https://download.postgresql.org/pub/repos/yum/{{ _pgdg_version }}/redhat/rhel-$releasever-$basearch
+    enabled: yes
+    file: pgdg-{{ _pgdg_version_stripped }}-centos
+    gpgcheck: yes
+    gpgkey: file://{{ _pgdg_key_dest }}

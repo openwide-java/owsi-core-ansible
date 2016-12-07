@@ -1,1 +1,4 @@
 # ansible role requirements
+- name: paluh.augeas
+  src: git+https://github.com/paluh/ansible-augeas.git
+  version: origin/master

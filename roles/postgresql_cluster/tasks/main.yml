@@ -1,0 +1,30 @@
+- name: install augeas
+  package:
+    name: python-augeas
+    state: installed
+  become: yes
+  become_user: root
+
+- name: install psycopg2
+  package:
+    name: python-psycopg2
+    state: installed
+  become: yes
+  become_user: root
+
+- include: cluster_item.yml
+  with_items: "{{ postgresql_cluster_clusters }}"
+  loop_control:
+    loop_var: cluster
+
+- include: cluster_db_item.yml
+  with_items: "{{ postgresql_cluster_clusters | cluster_db_items }}"
+  loop_control:
+    loop_var: cluster_db_item
+    label: "{{ cluster_db_item.database.name }}"
+
+- include: cluster_user_item.yml
+  with_items: "{{ postgresql_cluster_clusters | cluster_user_items }}"
+  loop_control:
+    loop_var: cluster_user_item
+    label: "{{ cluster_user_item.user.username }}"

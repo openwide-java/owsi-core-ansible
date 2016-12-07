@@ -1,0 +1,30 @@
+- hosts: all
+  roles: 
+    - role: postgresql
+      postgresql_versions:
+        - "9.2"
+        - "9.5"
+        - "9.6"
+    - role: postgresql_cluster
+      postgresql_cluster_clusters:
+        - name: default
+          path: /data/services/postgresql-9.2/data
+          postgresql_version: "9.2"
+          port: 5432
+          databases:
+            - name: owsi
+          users:
+            - username: owsi
+              password: password
+        - name: default
+          path: /data/services/postgresql-9.5/data
+          postgresql_version: "9.5"
+          port: 5433
+          databases:
+            - name: owsi
+          users:
+            - username: owsi
+              password: password
+              databases:
+                - name: owsi
+                  privileges: CONNECT

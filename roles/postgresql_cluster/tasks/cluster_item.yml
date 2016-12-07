@@ -1,0 +1,70 @@
+- include_vars: cluster_item_vars.yml
+
+- name: "postgresql-cluster · check cluster {{ cluster.name }}"
+  stat:
+    path: "{{ cluster.path }}/postgresql.conf"
+  register: cluster_configuration
+  become: yes
+  become_user: "{{ postgresql_cluster_postgres_user }}"
+
+- block:
+    - name: "postgresql-cluster · create directory {{ cluster.name }}"
+      file:
+        path: "{{ cluster.path }}"
+        state: directory
+        owner: "{{ postgresql_cluster_postgres_user }}"
+        group: "{{ postgresql_cluster_postgres_user }}"
+        mode: u=rwx,g=rwx,o=
+      become: yes
+      become_user: root
+
+    - name: "postgresql-cluster · create {{ cluster.name }}"
+      command: "/usr/pgsql-{{ cluster.postgresql_version }}/bin/initdb --locale='{{ _cluster_locale }}' --lc-messages=en_US.UTF-8 '{{ cluster.path }}'"
+      become: yes
+      become_user: "{{ postgresql_cluster_postgres_user }}"
+  when: not cluster_configuration.stat.exists
+
+- block:
+  - name: "postgresql-cluster · port configuration {{ cluster.name }}"
+    augeas:
+      lens: postgresql
+      file: "{{ cluster.path }}/postgresql.conf"
+      command: set
+      path: port
+      value: "{{ _cluster_port }}"
+  - name: "postgresql-cluster · unix socket configuration {{ cluster.name }}"
+    augeas:
+      lens: postgresql
+      file: "{{ cluster.path }}/postgresql.conf"
+      command: set
+      path: "{{ _unix_socket_directory }}"
+      value: /var/run/postgresql
+  - name: "postgresql-cluster · pg_hba.conf {{ cluster.name }}"
+    copy:
+      src: pg_hba.conf
+      dest: "{{ cluster.path }}"
+      owner: "{{ postgresql_cluster_postgres_user }}"
+      group: "{{ postgresql_cluster_postgres_user }}"
+      mode: u+r,g+r,o=
+  become: yes
+  become_user: "{{ postgresql_cluster_postgres_user }}"
+
+- name: "postgresql_cluster · systemctl service's file {{ cluster.name }}"
+  template:
+    dest: "/etc/systemd/system/{{ _cluster_service }}.service"
+    src: postgresql.service.j2
+    owner: root
+    group: root
+    mode: u=rw,g=r,o=r
+  register: service_file
+  become: yes
+  become_user: root
+
+- name: "postgresql_cluster · systemctl service {{ cluster.name }}"
+  systemd:
+    name: "{{ _cluster_service }}"
+    daemon-reload: "{{ service_file.changed }}"
+    state: started
+    enabled: yes
+  become: yes
+  become_user: root

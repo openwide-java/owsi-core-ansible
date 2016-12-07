@@ -93,3 +93,6 @@ ENV/
 log/
 dependencies/
 .vagrant/
+
+# vim
+.*.swp

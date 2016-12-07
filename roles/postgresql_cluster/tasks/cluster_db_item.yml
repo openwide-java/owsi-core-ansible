@@ -1,0 +1,11 @@
+- include_vars: cluster_db_item_vars.yml
+
+- name: "postgresql_cluster · database {{ _database.name }}"
+  postgresql_db:
+    encoding: "{{ _database_encoding }}"
+    lc_collate: "{{ _database_locale }}"
+    lc_ctype: "{{ _database_locale }}"
+    name: "{{ _database.name }}"
+    owner: "{{ _database_owner }}"
+    port: "{{ _cluster_port }}"
+    template: "{{ _database_template }}"

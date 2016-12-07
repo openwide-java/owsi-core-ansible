@@ -1,0 +1,2 @@
+_cluster: "{{ cluster_user_item.cluster }}"
+_user: "{{ cluster_user_item.user }}"

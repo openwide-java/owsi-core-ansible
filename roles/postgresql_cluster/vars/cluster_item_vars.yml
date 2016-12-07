@@ -1,0 +1,5 @@
+_cluster_locale: "{{ cluster.locale | default(postgresql_cluster_default_locale) }}" 
+_cluster_service: "postgresql-{{ cluster.postgresql_version }}-{{ cluster.name }}"
+_cluster_port: "{{ cluster.port | default(postgresql_cluster_default_port) }}"
+
+_unix_socket_directory: "{{ 'unix_socket_directory' if cluster.postgresql_version | version_compare('9.3', '<') else 'unix_socket_directories' }}"

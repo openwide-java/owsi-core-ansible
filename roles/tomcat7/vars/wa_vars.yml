@@ -1,0 +1,1 @@
+tomcat7_wa_dest: "{{ tomcat7_dest.rstrip('/') | dirname }}/wa-{{ tomcat7_dest.rstrip('/') | basename }}"

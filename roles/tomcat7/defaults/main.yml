@@ -1,0 +1,3 @@
+tomcat7_user: tomcat
+tomcat7_catalina_bases: []
+tomcat7_catalina_base_root: /srv

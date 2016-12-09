@@ -1,0 +1,10 @@
+#! /bin/bash
+
+NETWORK_OPTS="-Djava.net.preferIPv4Stack=true"
+JMX_OPTS="-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"
+MEMORY_OPTS="-Xms768m -Xmx1024m -XX:MaxPermSize=256m"
+LDAP_OPTS="-Dcom.sun.jndi.ldap.connect.pool.debug=fine -Dcom.sun.jndi.ldap.connect.pool.timeout=0"
+PANIC_OPTS="-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/data/services/tomcat/ -XX:-OmitStackTraceInFastThrow -XX:-TraceClassUnloading"
+CATALINA_OPTS="${CATALINA_OPTS} -Dfile.encoding=UTF-8 ${NETWORK_OPTS} ${JMX_OPTS} ${MEMORY_OPTS} ${LDAP_OPTS} ${PANIC_OPTS}"
+
+export CATALINA_OPTS

@@ -1,0 +1,51 @@
+- name: check directories
+  file:
+    path: "{{ item.path }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default(item.owner) | default('root') }}"
+    mode: "{{ item.mode }}"
+    state: directory
+  with_items:
+    - path: /data
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/services
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/services/web
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/backup
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/backup/pgsql
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/log
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/log/web
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/log/web/tomcat
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/log/web/default
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/log/mail
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/work
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/opt
+      mode: u=rwx,g=rx,o=rx
+    - path: /data/services/web/{{ filesystem_application_name }}
+      mode: u=rwx,g=rx,o=rx
+      owner: "{{ filesystem_application_user }}"
+    - path: /data/services/web/{{ filesystem_application_name }}/data
+      mode: u=rwx,g=rx,o=rx
+      owner: "{{ filesystem_application_user }}"
+    - path: /data/services/web/{{ filesystem_application_name }}/documentroot
+      mode: u=rwx,g=rx,o=rx
+      owner: "{{ filesystem_application_user }}"
+    - path: /data/services/web/{{ filesystem_application_name }}/tomcat
+      mode: u=rwx,g=rx,o=rx
+      owner: "{{ filesystem_application_user }}"
+    - path: /data/services/postgresql
+      mode: u=rwx,g=rx,o=rx
+      owner: "{{ filesystem_postgresql_user }}"
+  loop_control:
+    label: "{{ item.path }}"
+  become: yes
+  become_user: root

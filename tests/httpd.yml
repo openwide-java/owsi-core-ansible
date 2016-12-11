@@ -1,0 +1,33 @@
+- hosts: all
+  become: yes
+  become_user: root
+  pre_tasks:
+    - name: certs directory
+      file:
+        path: "{{ ssl_certificate | dirname }}"
+        state: directory
+        mode: u=rwx,g=rx,o=rx
+      become: yes
+      become_user: root
+  roles:
+    - role: filesystem
+      filesystem_application_name: application
+      filesystem_application_user: vagrant
+      filesystem_postgresql: no
+    - role: ssl_selfsigned
+      ssl_selfsigned_cn: application.demo
+      ssl_selfsigned_aliases:
+        - application1.demo
+      ssl_selfsigned_certificate: "{{ ssl_certificate }}"
+      ssl_selfsigned_key: "{{ ssl_key }}"
+    - role: httpd
+      httpd_server_name: application.demo
+      httpd_server_aliases:
+        - application1.demo
+      httpd_application_name: application
+      httpd_ssl_certificate: "{{ ssl_certificate }}"
+      httpd_ssl_key: "{{ ssl_key }}"
+  vars:
+    ssl_certificate: /etc/httpd/certs/application.crt
+    ssl_key: /etc/httpd/certs/application.key
+

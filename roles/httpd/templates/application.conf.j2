@@ -1,0 +1,53 @@
+ServerName {{ _server_name }}
+
+<VirtualHost *:443>
+    ServerName {{ _server_name }}
+    {% for _server_alias in _server_aliases | default([]) %}
+    ServerAlias {{ _server_alias }}
+    {% endfor %}
+
+    DocumentRoot /data/services/web/{{ _application_name }}/site
+
+    ProxyErrorOverride On
+    ProxyPass /static-content/ !
+    ProxyPass /errors/ !
+    ProxyPass /server-status !
+    ProxyPass         / ajp://localhost:8009/ keepalive=on timeout=3000 ttl=300
+    ProxyPassReverse  / ajp://localhost:8009/
+
+    ErrorDocument 403 /errors/403.html
+    ErrorDocument 404 /errors/404.html
+    ErrorDocument 500 /errors/500.html
+    ErrorDocument 503 /errors/503.html
+
+    AddOutputFilterByType DEFLATE application/x-javascript text/html text/xml text/css text/javascript
+
+    AddDefaultCharset UTF-8
+    AddCharset UTF-8 .js .css
+
+    #<Location "/server-status">
+    #    SetHandler server-status
+    #    Require ip 127.0.0.1
+    #</Location>
+    <Directory /data/services/web/{{ _application_name }}/site>
+        Require all granted
+    </Directory>
+
+    SSLEngine on
+    SSLCertificateFile {{ _ssl_certificate }}
+    SSLCertificateKeyFile {{ _ssl_key }}
+    SSLCACertificateFile {{ _ssl_certificate }}
+
+    CustomLog /data/log/web/{{ _application_name }}-ssl-access_log combined
+    ErrorLog /data/log/web/{{ _application_name }}-ssl-error_log
+</VirtualHost>
+
+## Redirection * vers le https .fr ##
+<VirtualHost *:80>
+    ServerName {{ _server_name }}
+    {% for _server_alias in _server_aliases | default([]) %}
+    ServerAlias {{ _server_alias }}
+    {% endfor %}
+    RewriteEngine On
+    RewriteRule ^(.*)$ https://{{ _server_https_domain_redirect }}/$1 [R,L]
+</VirtualHost>

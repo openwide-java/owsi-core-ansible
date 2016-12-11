@@ -1,0 +1,4 @@
+filesystem_postgresql_user: postgres
+filesystem_httpd_user: apache
+filesystem_postgresql: yes
+filesystem_httpd: yes

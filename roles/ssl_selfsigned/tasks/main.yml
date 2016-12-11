@@ -1,0 +1,19 @@
+- name: ssl_selfsigned · generation
+  command: >
+      openssl req -new -nodes -x509
+      -subj "{{ ssl_selfsigned_subj }}"
+      -days 365
+      -keyout "{{ ssl_selfsigned_key }}"
+      -out "{{ ssl_selfsigned_certificate }}"
+      -extensions v3_ca
+  args:
+    creates: "{{ ssl_selfsigned_certificate }}"
+  become: yes
+  become_user: root
+
+- name: ssl_selfsigned · check permissions
+  file:
+    path: "{{ ssl_selfsigned_key }}"
+    mode: o-rw
+  become: yes
+  become_user: root

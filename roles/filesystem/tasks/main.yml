@@ -18,11 +18,7 @@
       mode: u=rwx,g=rx,o=rx
     - path: /data/log
       mode: u=rwx,g=rx,o=rx
-    - path: /data/log/web
-      mode: u=rwx,g=rx,o=rx
-    - path: /data/log/web/tomcat
-      mode: u=rwx,g=rx,o=rx
-    - path: /data/log/web/default
+    - path: /data/log/tomcat
       mode: u=rwx,g=rx,o=rx
     - path: /data/log/mail
       mode: u=rwx,g=rx,o=rx
@@ -36,12 +32,25 @@
     - path: /data/services/web/{{ filesystem_application_name }}/data
       mode: u=rwx,g=rx,o=rx
       owner: "{{ filesystem_application_user }}"
-    - path: /data/services/web/{{ filesystem_application_name }}/documentroot
+    - path: /data/services/web/{{ filesystem_application_name }}/site
       mode: u=rwx,g=rx,o=rx
       owner: "{{ filesystem_application_user }}"
     - path: /data/services/web/{{ filesystem_application_name }}/tomcat
       mode: u=rwx,g=rx,o=rx
       owner: "{{ filesystem_application_user }}"
+  loop_control:
+    label: "{{ item.path }}"
+  become: yes
+  become_user: root
+
+- name: check directories (postgresql)
+  file:
+    path: "{{ item.path }}"
+    owner: "{{ item.owner | default('root') }}"
+    group: "{{ item.group | default(item.owner) | default('root') }}"
+    mode: "{{ item.mode }}"
+    state: directory
+  with_items:
     - path: /data/services/postgresql
       mode: u=rwx,g=rx,o=rx
       owner: "{{ filesystem_postgresql_user }}"
@@ -49,3 +58,19 @@
     label: "{{ item.path }}"
   become: yes
   become_user: root
+  when: filesystem_postgresql
+
+- name: check directories (httpd)
+  file:
+    path: /data/log/web
+    mode: u=rwx,g=rx,o=rx
+    owner: "{{ filesystem_httpd_user }}"
+    group: "{{ filesystem_httpd_user }}"
+    selevel: s0
+    serole: object_r
+    setype: httpd_log_t
+    seuser: system_u
+    state: directory
+  become: yes
+  become_user: root
+  when: filesystem_httpd

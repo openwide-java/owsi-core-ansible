@@ -1,0 +1,6 @@
+_aliases: >-
+    {% for alias in ssl_selfsigned_aliases | default([]) -%}
+    DNS.{{ loop.index }}={{ alias }}{% if not loop.last %},{% endif %}
+    {%- endfor %}
+_aliases_str: "{{ '/subjectAltName=' + _aliases if _aliases else '' }}"
+ssl_selfsigned_subj: "/C=FR/CN={{ ssl_selfsigned_cn }}{{ _aliases_str }}"

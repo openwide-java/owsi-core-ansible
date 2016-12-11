@@ -1,0 +1,6 @@
+- name: httpd
+  service:
+    name: httpd
+    state: restarted
+  become: yes
+  become_user: root

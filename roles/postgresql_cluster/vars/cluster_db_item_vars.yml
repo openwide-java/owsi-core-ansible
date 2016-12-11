@@ -1,8 +1,0 @@
-_cluster: "{{ cluster_db_item.cluster }}"
-_database: "{{ cluster_db_item.database }}"
-
-_database_owner: "{{ _database.owner | default(postgresql_cluster_postgres_user) }}"
-_database_locale: "{{ _database.locale | default(postgresql_cluster_default_locale) }}"
-_database_encoding: "{{ _database.encoding | default(postgresql_cluster_default_encoding) }}"
-_database_template: "{{ _database.template | default(postgresql_cluster_default_template) }}"
-_cluster_port: "{{ _cluster.port | default(postgresql_cluster_default_port) }}"

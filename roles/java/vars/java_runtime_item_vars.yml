@@ -1,6 +1,0 @@
-_java_archive_destination: "{{ java_download_path }}/java-{{ item.type }}-{{ item.version }}-{{ item.arch }}.tar.gz"
-_java_archive_url: "{{ java_archive_url_template }}"
-_java_archive_checksum: "{{ item.checksum }}"
-_java_install_destination: "{{ java_runtime_path }}/{{ item.type }}-{{ item.version }}-{{ item.arch }}"
-# used when unarchive with strip components is not available
-_java_install_wa_destination: "{{ java_runtime_path }}/wa-{{ item.type }}-{{ item.version }}-{{ item.arch }}"

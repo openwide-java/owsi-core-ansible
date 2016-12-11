@@ -5,3 +5,6 @@ postgresql_cluster_default_port: 5432
 postgresql_cluster_default_template: template0
 postgresql_cluster_default_user_roles: LOGIN
 postgresql_cluster_default_user_database_privileges: CONNECT,CREATE
+
+_database:
+_cluster:

@@ -1,2 +1,0 @@
-_postgresql_version: "{{ postgresql_version }}"
-_postgresql_version_stripped: "{{ postgresql_version.replace('.', '') }}"

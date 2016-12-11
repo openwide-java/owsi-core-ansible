@@ -1,5 +1,3 @@
-- include_vars: cluster_db_item_vars.yml
-
 - name: "postgresql_cluster · database {{ _database.name }}"
   postgresql_db:
     encoding: "{{ _database_encoding }}"
@@ -9,3 +7,12 @@
     owner: "{{ _database_owner }}"
     port: "{{ _cluster_port }}"
     template: "{{ _database_template }}"
+  vars:
+    _database: "{{ cluster_db_item.database }}"
+    _cluster: "{{ cluster_db_item.cluster }}"
+    # _database and _cluster cannot be reused here
+    _database_owner: "{{ _database.owner | default(postgresql_cluster_postgres_user) }}"
+    _database_locale: "{{ cluster_db_item.database.locale | default(postgresql_cluster_default_locale) }}"
+    _database_encoding: "{{ cluster_db_item.database.encoding | default(postgresql_cluster_default_encoding) }}"
+    _database_template: "{{ cluster_db_item.database.template | default(postgresql_cluster_default_template) }}"
+    _cluster_port: "{{ cluster_db_item.cluster.port | default(postgresql_cluster_default_port) }}"

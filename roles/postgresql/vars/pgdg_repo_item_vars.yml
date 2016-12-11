@@ -1,4 +1,0 @@
-_pgdg_version: "{{ pgdg_version }}"
-_pgdg_version_stripped: "{{ pgdg_version.replace('.', '') }}"
-_pgdg_key_src: RPM-GPG-KEY-PGDG
-_pgdg_key_dest: /etc/pki/rpm-gpg/RPM-GPG-KEY-PGDG-{{ _pgdg_version_stripped }}

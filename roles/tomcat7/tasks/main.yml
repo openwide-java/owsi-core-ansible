@@ -37,9 +37,6 @@
 # find parent of bin folder
 # symlink tomcat7_dest to found folder
 - block:
-  - name: prepare workaround vars
-    include_vars: wa_vars.yml
-
   - name: tomcat · prepare {{ tomcat7_wa_dest }} folder
     file:
       path: "{{ tomcat7_wa_dest }}"
@@ -70,6 +67,9 @@
       state: link
       path: "{{ tomcat7_dest }}"
       src: "{{ find_result.stdout_lines[0] }}"
+
+  vars:
+    tomcat7_wa_dest: "{{ tomcat7_dest.rstrip('/') | dirname }}/wa-{{ tomcat7_dest.rstrip('/') | basename }}"
 
   when: ansible_distribution_major_version == "5"
   become: yes

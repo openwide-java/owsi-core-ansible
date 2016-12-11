@@ -1,129 +1,139 @@
-- include_vars: catalina_base_item_vars.yml
+- block:
+  - name: tomcat7 · catalina_base · directory "{{ _catalina_base_path }}"
+    file:
+      path: "{{ item }}"
+      owner: "{{ _catalina_base_user }}"
+      group: "{{ _catalina_base_user }}"
+      mode: u=rwx,g=rwx,o=rx
+      state: directory
+    with_items:
+      - "{{ _catalina_base_path }}"
+    become: yes
+    become_user: root
 
-- name: tomcat7 · catalina_base · directory "{{ _catalina_base_path }}"
-  file:
-    path: "{{ item }}"
-    owner: "{{ _catalina_base_user }}"
-    group: "{{ _catalina_base_user }}"
-    mode: u=rwx,g=rwx,o=rx
-    state: directory
-  with_items:
-    - "{{ _catalina_base_path }}"
-  become: yes
-  become_user: root
+  - name: tomcat7 · catalina_base · directory "{{ _catalina_base_path }}"
+    file:
+      path: "{{ item }}"
+      owner: "{{ _catalina_base_user }}"
+      group: "{{ _catalina_base_user }}"
+      mode: u=rwx,g=rwx,o=rx
+      state: directory
+    with_items:
+      - "{{ _catalina_base_path }}"
+      - "{{ _catalina_base_path }}/bin"
+      - "{{ _catalina_base_path }}/conf"
+      - "{{ _catalina_base_path }}/lib"
+      - "{{ _catalina_base_path }}/logs"
+      - "{{ _catalina_base_path }}/webapps"
+      - "{{ _catalina_base_path }}/work"
+      - "{{ _catalina_base_path }}/temp"
+      - "{{ _catalina_base_path }}/pid"
+    become: yes
+    become_user: "{{ _catalina_base_user }}"
 
-- name: tomcat7 · catalina_base · directory "{{ _catalina_base_path }}"
-  file:
-    path: "{{ item }}"
-    owner: "{{ _catalina_base_user }}"
-    group: "{{ _catalina_base_user }}"
-    mode: u=rwx,g=rwx,o=rx
-    state: directory
-  with_items:
-    - "{{ _catalina_base_path }}"
-    - "{{ _catalina_base_path }}/bin"
-    - "{{ _catalina_base_path }}/conf"
-    - "{{ _catalina_base_path }}/lib"
-    - "{{ _catalina_base_path }}/logs"
-    - "{{ _catalina_base_path }}/webapps"
-    - "{{ _catalina_base_path }}/work"
-    - "{{ _catalina_base_path }}/temp"
-  become: yes
-  become_user: "{{ _catalina_base_user }}"
+  # conf/ file inventory
+  - name: tomcat7 · catalina_base · {{ tomcat7_dest }}/conf/ inventory"
+    find:
+      recurse: no
+      paths:
+        - "{{ tomcat7_dest }}/conf"
+      file_type: file
+    register: catalina_home_files
+    become: yes
+    become_user: "{{ _catalina_base_user }}"
 
-# conf/ file inventory
-- name: tomcat7 · catalina_base · {{ tomcat7_dest }}/conf/ inventory"
-  find:
-    recurse: no
-    paths:
-      - "{{ tomcat7_dest }}/conf"
-    file_type: file
-  register: catalina_home_files
-  become: yes
-  become_user: "{{ _catalina_base_user }}"
+  # current {catalina_base}/conf/ status
+  - name: "tomcat7 · catalina_base · files {{ _catalina_base_path }}"
+    stat:
+      path: "{{ _catalina_base_path }}/{{ item.path | relpath(tomcat7_dest) }}"
+    with_items: "{{ catalina_home_files.files }}"
+    loop_control:
+      label: "{{ item.path | relpath(tomcat7_dest) }}"
+    register: catalina_base_files
+    become: yes
+    become_user: "{{ _catalina_base_user }}"
 
-# current {catalina_base}/conf/ status
-- name: "tomcat7 · catalina_base · files {{ _catalina_base_path }}"
-  stat:
-    path: "{{ _catalina_base_path }}/{{ item.path | relpath(tomcat7_dest) }}"
-  with_items: "{{ catalina_home_files.files }}"
-  loop_control:
-    label: "{{ item.path | relpath(tomcat7_dest) }}"
-  register: catalina_base_files
-  become: yes
-  become_user: "{{ _catalina_base_user }}"
+  # copy missing conf/ files by using catalina_home as source
+  - name: "tomcat7 · catalina_base · init file {{ _catalina_base_path }}"
+    copy:
+      dest: "{{ _catalina_base_path }}/{{ item.item.path | relpath(tomcat7_dest) }}"
+      src: "{{ tomcat7_dest }}/{{ item.item.path | relpath(tomcat7_dest) }}"
+      remote_src: yes
+      owner: "{{ _catalina_base_user }}"
+      group: "{{ _catalina_base_user }}"
+      mode: u=rw,g=rw,o=r
+    with_items: "{{ catalina_base_files.results }}"
+    loop_control:
+      label: "{{ item.item.path | relpath(tomcat7_dest) }}"
+    when: not item.stat.exists
+    become: yes
+    become_user: "{{ _catalina_base_user }}"
 
-# copy missing conf/ files by using catalina_home as source
-- name: "tomcat7 · catalina_base · init file {{ _catalina_base_path }}"
-  copy:
-    dest: "{{ _catalina_base_path }}/{{ item.item.path | relpath(tomcat7_dest) }}"
-    src: "{{ tomcat7_dest }}/{{ item.item.path | relpath(tomcat7_dest) }}"
-    remote_src: yes
-    owner: "{{ _catalina_base_user }}"
-    group: "{{ _catalina_base_user }}"
-    mode: u=rw,g=rw,o=r
-  with_items: "{{ catalina_base_files.results }}"
-  loop_control:
-    label: "{{ item.item.path | relpath(tomcat7_dest) }}"
-  when: not item.stat.exists
-  become: yes
-  become_user: "{{ _catalina_base_user }}"
+  - name: tomcat7 · catalina_base · service configuration directory
+    file:
+      path: /etc/systemd/system/tomcat7@{{ catalina_base.name }}.service.d
+      state: directory
+      owner: root
+      group: root
+      mode: u=rwx,g=rx,o=rx
+    become: yes
+    become_user: root
 
-- name: tomcat7 · catalina_base · service configuration directory
-  file:
-    path: /etc/systemd/system/tomcat7@{{ catalina_base.name }}.service.d
-    state: directory
-    owner: root
-    group: root
-    mode: u=rwx,g=rx,o=rx
-  become: yes
-  become_user: root
+  - name: tomcat7 · catalina_base · service configuration file
+    template:
+      src: setenv.sh.j2
+      dest: "{{ _catalina_base_path }}/bin/setenv.sh"
+      owner: "{{ _catalina_base_user }}" 
+      group: "{{ _catalina_base_user }}"
+      mode: u=rw,g=rw,o=r
+    become: yes
+    become_user: "{{ _catalina_base_user }}"
 
-- name: tomcat7 · catalina_base · service configuration file
-  template:
-    src: setenv.sh.j2
-    dest: "{{ _catalina_base_path }}/bin/setenv.sh"
-    owner: "{{ _catalina_base_user }}" 
-    group: "{{ _catalina_base_user }}"
-    mode: u=rw,g=rw,o=r
-  become: yes
-  become_user: "{{ _catalina_base_user }}"
+  - name: tomcat7 · catalina_base · service configuration file
+    copy:
+      dest: /etc/systemd/system/tomcat7@{{ catalina_base.name }}.service.d/10-default.conf
+      owner: root
+      group: root
+      mode: u=rw,g=rw,o=r
+      content: |
+          [Service]
+          Environment=SLEEP={{ _catalina_base_stop_wait_in_s }}
+          Environment=JAVA_HOME={{ _java_home }}
+          Environment=CATALINA_HOME={{ _catalina_home }}
+          Environment=CATALINA_BASE={{ _catalina_base }}
+          Environment=CATALINA_PID={{ _catalina_base }}/pid/tomcat.pid
+          PIDFile={{ _catalina_base }}/pid/tomcat.pid
+          ExecStart={{ tomcat7_dest }}/bin/catalina.sh start
+          ExecStop={{ tomcat7_dest }}/bin/catalina.sh {{ '-force' if _catalina_base_stop_allow_kill9 else '' }} stop
+          User={{ _catalina_base_user }}
+          Group={{ _catalina_base_user }}
+    vars:
+      _catalina_home: "{{ tomcat7_dest }}"
+      _catalina_base: "{{ _catalina_base_path }}"
+      _java_home: "{{ _catalina_base_java_home }}"
+    become: yes
+    become_user: root
 
-- name: tomcat7 · catalina_base · service configuration file
-  copy:
-    dest: /etc/systemd/system/tomcat7@{{ catalina_base.name }}.service.d/10-default.conf
-    owner: root
-    group: root
-    mode: u=rw,g=rw,o=r
-    content: |
-        [Service]
-        Environment=JAVA_HOME={{ _java_home }}
-        Environment=CATALINA_HOME={{ _catalina_home }}
-        Environment=CATALINA_BASE={{ _catalina_base }}
-        ExecStart={{ tomcat7_dest }}/bin/catalina.sh run
-        ExecStop={{ tomcat7_dest }}/bin/catalina.sh stop
-        User={{ _catalina_base_user }}
-        Group={{ _catalina_base_user }}
+  - name: tomcat7 · catalina_base · setenv.sh
+    template:
+      src: setenv.sh.j2
+      dest: "{{ _catalina_base_path }}/bin/setenv.sh.j2"
+      owner: "{{ _catalina_base_user }}"
+      group: "{{ _catalina_base_user }}"
+      mode: u=rw,g=rw,o=r
+    become: yes
+    become_user: "{{ _catalina_base_user }}"
+
+  - name: tomcat7 · systemd configuration
+    systemd:
+      name: tomcat7@{{ catalina_base.name }}
+      daemon-reload: "{{ service_file.changed }}"
+      enabled: true
+      state: "{{ 'restarted' if service_file.changed else 'started' }}"
+
   vars:
-    _catalina_home: "{{ tomcat7_dest }}"
-    _catalina_base: "{{ _catalina_base_path }}"
-    _java_home: "{{ _catalina_base_java_home }}"
-  become: yes
-  become_user: root
-
-- name: tomcat7 · catalina_base · setenv.sh
-  template:
-    src: setenv.sh.j2
-    dest: "{{ _catalina_base_path }}/bin/setenv.sh.j2"
-    owner: "{{ _catalina_base_user }}"
-    group: "{{ _catalina_base_user }}"
-    mode: u=rw,g=rw,o=r
-  become: yes
-  become_user: "{{ _catalina_base_user }}"
-
-- name: tomcat7 · systemd configuration
-  systemd:
-    name: tomcat7@{{ catalina_base.name }}
-    daemon-reload: "{{ service_file.changed }}"
-    enabled: true
-    state: "{{ 'restarted' if service_file.changed else 'started' }}"
+    _catalina_base_path: "{{ catalina_base.path | default((tomcat7_catalina_base_root, catalina_base.name) | join('/')) }}"
+    _catalina_base_user: "{{ catalina_base.user | default(tomcat7_default_user) }}"
+    _catalina_base_java_home: "{{ catalina_base.java_home | default(tomcat7_default_java_home) }}"
+    _catalina_base_stop_wait_in_s: "{{ catalina_base.stop_wait_in_s | default(tomcat7_default_stop_wait_in_s) }}"
+    _catalina_base_stop_allow_kill9: "{{ catalina_base.stop_allow_kill9 | default(tomcat7_default_stop_allow_kill9) }}"

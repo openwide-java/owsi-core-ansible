@@ -5,7 +5,7 @@ Description=Apache Tomcat Web Application Container
 After=syslog.target network.target
 
 [Service]
-Type=simple
+Type=forking
 SuccessExitStatus=143
 User={{ _user }}
 Group={{ _user }}

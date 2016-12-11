@@ -1,3 +1,0 @@
-_catalina_base_path: "{{ catalina_base.path | default((tomcat7_catalina_base_root, catalina_base.name) | join('/')) }}"
-_catalina_base_user: "{{ catalina_base.user | default(tomcat7_default_user) }}"
-_catalina_base_java_home: "{{ catalina_base.java_home | default(tomcat7_default_java_home) }}"

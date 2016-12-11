@@ -7,3 +7,10 @@ postgresql_default_packages:
   - postgresql{{ _postgresql_version_stripped }}-libs
 
 postgresql_packages: []
+
+_pgdg_available_versions:
+  - "9.2"
+  - "9.3"
+  - "9.4"
+  - "9.5"
+  - "9.6"

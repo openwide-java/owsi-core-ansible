@@ -1,0 +1,1 @@
+war_tomcat_catalina_pid: "{{ war_tomcat_catalina_base }}/pid/tomcat.pid"

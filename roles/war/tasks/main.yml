@@ -2,6 +2,7 @@
   copy:
     src: "{{ war_application_war_src }}"
     dest: "{{ war_application_war_target }}"
+    remote_src: "{{ war_application_war_remote_src }}"
     owner: "{{ war_application_user }}"
     group: "{{ war_application_user }}"
     mode: u=rw,g=r,o=r

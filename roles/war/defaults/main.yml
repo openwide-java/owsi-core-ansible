@@ -1,1 +1,2 @@
 war_tomcat_catalina_pid: "{{ war_tomcat_catalina_base }}/pid/tomcat.pid"
+war_application_war_remote_src: no

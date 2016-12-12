@@ -96,3 +96,6 @@ dependencies/
 
 # vim
 .*.swp
+
+# ignored playbook
+*-gitignored.yml

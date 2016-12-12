@@ -1,3 +1,11 @@
+- name: ssl_selfsigned · prepare directory
+  file:
+    path: "{{ ssl_selfsigned_certificate | dirname }}"
+    mode: u=rwx,g=rx,o=r
+    owner: root
+    group: root
+    state: directory
+
 - name: ssl_selfsigned · generation
   command: >
       openssl req -new -nodes -x509

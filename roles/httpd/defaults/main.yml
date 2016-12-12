@@ -1,1 +1,3 @@
 httpd_https_domain_redirect: "{{ httpd_server_name }}"
+httpd_step_configuration: yes
+httpd_step_install: yes

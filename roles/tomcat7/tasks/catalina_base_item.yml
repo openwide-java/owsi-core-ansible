@@ -13,13 +13,22 @@
 
   - name: tomcat7 · catalina_base · directory "{{ _catalina_base_path }}"
     file:
+      path: "{{ _catalina_base_path }}"
+      owner: "{{ _catalina_base_user }}"
+      group: "{{ _catalina_base_user }}"
+      mode: u=rwx,g=rwx,o=rx
+      state: directory
+    become: yes
+    become_user: root
+
+  - name: tomcat7 · catalina_base · subdirectories "{{ _catalina_base_path }}"
+    file:
       path: "{{ item }}"
       owner: "{{ _catalina_base_user }}"
       group: "{{ _catalina_base_user }}"
       mode: u=rwx,g=rwx,o=rx
       state: directory
     with_items:
-      - "{{ _catalina_base_path }}"
       - "{{ _catalina_base_path }}/bin"
       - "{{ _catalina_base_path }}/conf"
       - "{{ _catalina_base_path }}/lib"

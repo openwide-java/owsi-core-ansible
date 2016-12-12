@@ -3,6 +3,7 @@
 
 Vagrant.configure(2) do |config|
   config.vm.define "centos_7" do |centos_7|
+    centos_7.vm.network "public_network", bridge: "eno1"
     centos_7.vm.box = "centos/7"
   end
 end

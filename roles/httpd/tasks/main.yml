@@ -8,52 +8,56 @@
     - mod_ssl
   become: yes
   become_user: root
+  when: httpd_step_install
 
-- name: httpd · configuration
-  template:
-    src: application.conf.j2
-    dest: /etc/httpd/conf.d/50-{{ httpd_application_name }}.conf
-    owner: root
-    group: root
-    mode: u=rw,g=r,o=r
-  vars:
-    _server_name: "{{ httpd_server_name }}"
-    _server_aliases: "{{ httpd_server_aliases }}"
-    _application_name: "{{ httpd_application_name }}"
-    _server_https_domain_redirect: "{{ httpd_https_domain_redirect }}"
-    _ssl_certificate: "{{ httpd_ssl_certificate }}"
-    _ssl_key: "{{ httpd_ssl_key }}"
-  notify: httpd
-  become: yes
-  become_user: root
+- block:
+  - name: httpd · configuration
+    template:
+      src: application.conf.j2
+      dest: /etc/httpd/conf.d/50-{{ httpd_application_name }}.conf
+      owner: root
+      group: root
+      mode: u=rw,g=r,o=r
+    vars:
+      _server_name: "{{ httpd_server_name }}"
+      _server_aliases: "{{ httpd_server_aliases }}"
+      _application_name: "{{ httpd_application_name }}"
+      _server_https_domain_redirect: "{{ httpd_https_domain_redirect }}"
+      _ssl_certificate: "{{ httpd_ssl_certificate }}"
+      _ssl_key: "{{ httpd_ssl_key }}"
+    notify: httpd
+    become: yes
+    become_user: root
 
-- name: httpd · status page
-  template:
-    src: server-status.conf.j2
-    dest: /etc/httpd/conf.d/25-server-status.conf
-    owner: root
-    group: root
-    mode: u=rw,g=r,o=r
-  notify: httpd
-  become: yes
-  become_user: root
+  - name: httpd · status page
+    template:
+      src: server-status.conf.j2
+      dest: /etc/httpd/conf.d/25-server-status.conf
+      owner: root
+      group: root
+      mode: u=rw,g=r,o=r
+    notify: httpd
+    become: yes
+    become_user: root
 
-- name: httpd · remove default conf
-  file:
-    path: "/etc/httpd/conf.d/{{ item }}"
-    state: absent
-  with_items:
-    - autoindex.conf
-    - README
-    - userdir.conf
-    - welcome.conf
-  become: yes
-  become_user: root
+  - name: httpd · remove default conf
+    file:
+      path: "/etc/httpd/conf.d/{{ item }}"
+      state: absent
+    with_items:
+      - autoindex.conf
+      - README
+      - userdir.conf
+      - welcome.conf
+    become: yes
+    become_user: root
 
-- name: httpd · service
-  service:
-    name: httpd
-    enabled: yes
-    state: started
-  become: yes
-  become_user: root
+  - name: httpd · service
+    service:
+      name: httpd
+      enabled: yes
+      state: started
+    become: yes
+    become_user: root
+
+  when: httpd_step_configuration

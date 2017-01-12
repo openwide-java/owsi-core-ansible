@@ -7,8 +7,9 @@ war package.
 
 .. code-block:: bash
 
-   # move at project root and initialize vagrant image
-   make test-war
+   # move at project root, install ansible roles' dependencies
+   # and initialize vagrant image
+   make dependencies test-war
    # obtain a guest ssh shell
    make vagrant-image-ssh
    # obtain local ip-adress (probably 192.168....)

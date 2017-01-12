@@ -7,6 +7,9 @@ M_ANSIBLE_VERBOSITY  = $(or $(ANSIBLE_VERBOSITY),)
 export
 
 .PHONY: clean-vagrant vagrant-image vagrant-image-ssh docs
+dependencies:
+	ansible-galaxy install -r requirements.yml --roles-path ./dependencies
+
 vagrant-image:
 	@make -C vagrant image
 

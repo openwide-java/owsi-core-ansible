@@ -14,6 +14,7 @@ Contents:
    prerequisites
    architecture
    quick_run
+   documentation
 
 
 Indices and tables

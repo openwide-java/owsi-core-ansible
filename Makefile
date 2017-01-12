@@ -6,11 +6,13 @@ M_ANSIBLE_SSH_ARGS   = --ssh-common-args "-F vagrant/build/ssh_config_$(M_VAGRAN
 M_ANSIBLE_VERBOSITY  = $(or $(ANSIBLE_VERBOSITY),)
 export
 
-.PHONY: vagrant-image
+.PHONY: clean-vagrant vagrant-image vagrant-image-ssh docs
 vagrant-image:
 	@make -C vagrant image
 
-.PHONY: clean-vagrant
+vagrant-image-ssh:
+	@make -C vagrant image-ssh
+
 clean-vagrant:
 	@make -C vagrant clean
 
@@ -20,3 +22,9 @@ test-%: vagrant-image
 		$(M_ANSIBLE_SSH_ARGS) \
 		$(M_ANSIBLE_INVENTORY) \
 		tests/$*.yml
+
+docs-html:
+	@make -C docs html
+
+docs-livehtml:
+	@make -C docs livehtml

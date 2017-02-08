@@ -4,6 +4,7 @@ M_ANSIBLE_CONFIG     = etc/ansible.conf
 M_ANSIBLE_INVENTORY  = -i $(M_VAGRANT_IMAGE),
 M_ANSIBLE_SSH_ARGS   = --ssh-common-args "-F vagrant/build/ssh_config_$(M_VAGRANT_IMAGE)"
 M_ANSIBLE_VERBOSITY  = $(or $(ANSIBLE_VERBOSITY),)
+M_ANSIBLE_ARGS       = $(or $(ANSIBLE_ARGS),)
 export
 
 .PHONY: clean-vagrant vagrant-image vagrant-image-ssh docs
@@ -24,7 +25,8 @@ test-%: vagrant-image
 		$(M_ANSIBLE_VERBOSITY) \
 		$(M_ANSIBLE_SSH_ARGS) \
 		$(M_ANSIBLE_INVENTORY) \
-		tests/$*.yml
+		tests/$*.yml \
+		$(M_ANSIBLE_ARGS)
 
 docs-html:
 	@make -C docs html

@@ -23,9 +23,9 @@
     - path: /data/log/mail
       mode: u=rwx,g=rx,o=rx
     - path: /data/work
-      mode: u=rwx,g=rx,o=rx
+      mode: u=rwx,o=rx
     - path: /data/opt
-      mode: u=rwx,g=rx,o=rx
+      mode: u=rwx,o=rx
     - path: /data/services/web/{{ filesystem_application_name }}
       mode: u=rwx,g=rx,o=rx
       owner: "{{ filesystem_application_user }}"
@@ -36,7 +36,7 @@
       mode: u=rwx,g=rx,o=rx
       owner: "{{ filesystem_application_user }}"
     - path: /data/services/web/{{ filesystem_application_name }}/tomcat
-      mode: u=rwx,g=rx,o=rx
+      mode: u=rwx,o=rx
       owner: "{{ filesystem_application_user }}"
   loop_control:
     label: "{{ item.path }}"

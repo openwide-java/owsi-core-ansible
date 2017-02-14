@@ -227,3 +227,6 @@ dummy:
 .PHONY: livehtml
 livehtml:
 	sphinx-autobuild -B --ignore "*.swp" --ignore "*.log" --ignore "*~" -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+
+publish: html
+	rsync -avzr --delete build/html/ webspace.projects.openwide.fr:/data/services/webspace/owsi-tools/public/owsi-core-ansible

@@ -59,7 +59,7 @@ Sphinx (for documentation)
    # at project root
    virtualenv venv
    . venv/bin/activate
-   pip install sphinx python_bootstrap_theme sphinx-builder
+   pip install sphinx sphinx_bootstrap_theme sphinx-autobuild
 
    # then each time you need to work with sphinx
    . venv/bin/activate

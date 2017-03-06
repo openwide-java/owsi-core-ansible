@@ -82,7 +82,7 @@
     template:
       src: setenv.sh.j2
       dest: "{{ _catalina_base_path }}/bin/setenv.sh"
-      owner: "{{ _catalina_base_user }}" 
+      owner: "{{ _catalina_base_user }}"
       group: "{{ _catalina_base_user }}"
       mode: u=rw,g=rw,o=r
     become: yes
@@ -126,7 +126,7 @@
   - name: tomcat7 · systemd configuration
     systemd:
       name: tomcat7@{{ catalina_base.name }}
-      daemon-reload: "{{ service_file.changed }}"
+      daemon_reload: "{{ service_file.changed }}"
       enabled: true
       state: "{{ 'restarted' if service_file.changed else 'started' }}"
 

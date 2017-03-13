@@ -113,16 +113,6 @@
     become: yes
     become_user: root
 
-  - name: tomcat7 · catalina_base · setenv.sh
-    template:
-      src: setenv.sh.j2
-      dest: "{{ _catalina_base_path }}/bin/setenv.sh.j2"
-      owner: "{{ _catalina_base_user }}"
-      group: "{{ _catalina_base_user }}"
-      mode: u=rw,g=rw,o=r
-    become: yes
-    become_user: "{{ _catalina_base_user }}"
-
   - name: tomcat7 · systemd configuration
     systemd:
       name: tomcat7@{{ catalina_base.name }}

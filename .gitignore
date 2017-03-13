@@ -90,7 +90,7 @@ ENV/
 
 # ansible
 *.retry
-log/
+log/*
 dependencies/
 .vagrant/
 
@@ -99,3 +99,5 @@ dependencies/
 
 # ignored playbook
 *-gitignored.yml
+
+!.gitkeep

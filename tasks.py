@@ -68,6 +68,46 @@ def _ansible(ctx, virtualenv_path=None, skip=None, version=None):
         print('ansible not managed (ansible.skip: yes)')
 
 
+@task
+def _sphinx(ctx, virtualenv_path=None, skip=None, version=None):
+    """
+    Install sphinx inside a virtualenv folder.
+    """
+    skip = skip if (skip is not None) \
+        else ctx.sphinx.skip
+    dependencies = ctx.sphinx.dependencies
+    if not skip:
+        virtualenv_path = virtualenv_path or ctx.virtualenv_path
+        package = ctx.sphinx.package_name
+        version = version or ctx.sphinx.version
+        _pip_package(ctx, package, version)
+        for dependency in dependencies:
+            _pip_package(ctx, dependency['name'],
+                         dependency.get('version', None))
+    else:
+        print('sphinx not managed (sphinx.skip: yes)')
+
+
+@task
+def _recommonmark(ctx, virtualenv_path=None, skip=None, version=None):
+    """
+    Install recommonmark inside a virtualenv folder.
+    """
+    skip = skip if (skip is not None) \
+        else ctx.recommonmark.skip
+    dependencies = ctx.dependencies
+    if not skip:
+        virtualenv_path = virtualenv_path or ctx.virtualenv_path
+        package = ctx.recommonmark.package_name
+        version = version or ctx.recommonmark.version
+        _pip_package(ctx, package, version)
+        for dependency in dependencies:
+            _pip_package(ctx, dependency['name'],
+                         dependency.get('version', None))
+    else:
+        print('recommonmark not managed (recommonmark.skip: yes)')
+
+
 def _pip_package(ctx, package, version=None, virtualenv_path=None):
     """
     Install a pypi package (with pip) inside a virtualenv folder.
@@ -79,7 +119,7 @@ def _pip_package(ctx, package, version=None, virtualenv_path=None):
             raise Exception('{} install fails'.format(package))
 
 
-@task(pre=[_virtualenv, _ansible, galaxy])
+@task(pre=[_virtualenv, _ansible, _sphinx, _recommonmark, galaxy])
 def configure(ctx):
     """
     Trigger virtualenv, ansible initialization.
@@ -110,6 +150,64 @@ def _ansible_playbook(ctx, virtualenv_path=None, playbook=None,
         args.append('--extra-vars')
         args.append(quote(json.dumps(extra_vars)))
     ctx.run(_vcommand(virtualenv_path, 'ansible-playbook', *args), pty=True)
+
+
+
+def _docs_makefile(target, ctx, virtualenv_path=None):
+    """
+    Trigger a sphinx Makefile target. Used to delegate all documentation jobs to
+    original sphinx Makefile.
+    """
+    virtualenv_path = virtualenv_path or ctx.virtualenv_path
+    os.environ['PATH'] = \
+        ':'.join([
+            os.path.abspath(os.path.join(virtualenv_path, 'bin')),
+            os.environ['PATH']])
+    args = ['make', '-C', '.', target]
+    ctx.run(' '.join(args), pty=True)
+
+
+@task(pre=[configure])
+def docs(ctx, virtualenv_path=None):
+    """
+    Rebuild documentation.
+    """
+    _docs_makefile('html', ctx, virtualenv_path)
+
+
+@task(name='docs-clean', pre=[configure])
+def docs_clean(ctx, virtualenv_path=None):
+    """
+    Clean generated documentation.
+    """
+    _docs_makefile('clean', ctx, virtualenv_path)
+
+
+@task(name='docs-live', pre=[docs, configure])
+def docs_live(ctx, virtualenv_path=None):
+    """
+    Live build of documentation on each modification. Open a browser with a
+    local server to serve documentation. Opened page is reloaded each time
+    documentation is generated.
+    """
+    virtualenv_path = virtualenv_path or ctx.virtualenv_path
+    os.environ['PATH'] = \
+        ':'.join([
+            os.path.abspath(os.path.join(virtualenv_path, 'bin')),
+            os.environ['PATH']])
+    command = ' '.join([
+        'sphinx-autobuild',
+        '-B',
+        '--ignore', '"*.swp"',
+        '--ignore', '"*.log"',
+        '--ignore', '"*~"',
+        '--ignore', '"*~"',
+        '-b', 'html',
+        os.path.dirname(__file__) + '/docs/source',
+        os.path.dirname(__file__) + '/docs/build/html'
+    ])
+    ctx.run(command, pty=True)
+
 
 def _check_hosts(virtualenv_path):
     """
@@ -285,10 +383,21 @@ def _command(command, *args):
 vagrant_ns = Collection('vagrant', vagrant_up, vagrant_destroy, vagrant_halt,
                                    vagrant_ssh)
 ansible_ns = Collection('ansible', ansible_list_hosts, ansible_run)
-ns = Collection(configure, galaxy, vagrant_ns, ansible_ns)
+ns = Collection(configure, galaxy, vagrant_ns, ansible_ns,
+                docs, docs_live, docs_clean)
 ns.configure({
     'ansible': {
         'package_name': 'ansible'
+    },
+    'sphinx': {
+        'package_name': 'sphinx',
+        'dependencies': [
+            { 'name': 'sphinx-bootstrap-theme' },
+            { 'name': 'sphinx-autobuild' }
+        ]
+    },
+    'recommonmark': {
+        'package_name': 'recommonmark'
     },
     'dependencies': []
 })

@@ -1,0 +1,10 @@
+---
+- hosts: "{{ target_host }}"
+  gather_facts: no
+  roles:
+    - role: vagrant
+      vagrant_task: 'up'
+      vagrant_host: "{{ host_alias | default(inventory_hostname) }}"
+      vagrant_root_path: "{{ inventory_dir | dirname }}/vagrant"
+      delegate_to: localhost
+      when: is_vagrant_host

@@ -1,7 +1,16 @@
+- hosts: owsi-core.vagrant
+  gather_facts: no
+  roles:
+    - role: vagrant
+      vagrant_task: 'up'
+      vagrant_host: "{{ host_alias | default(inventory_hostname) }}"
+      vagrant_root_path: "{{ inventory_dir | dirname }}/vagrant"
+      delegate_to: localhost
+
 # this is only an example playbook
 # cas server provided by this playbook displays login page
 # but is not a fully functionnal running instance.
-- hosts: all
+- hosts: owsi-core.vagrant
   become: yes
   become_user: root
   pre_tasks:
@@ -32,12 +41,13 @@
       java_runtime_path: /data/opt
       java_results_var: jdks
       java_runtimes:
-        - version: 8u112
-          version_build: 15
+        - version: 8u131
+          version_build: 11
           arch: x64
           type: jdk
-          checksum: md5:de9b7a90f0f5a13cfcaa3b01451d0337
-          key: jdk-8u112-x64
+          checksum: md5:75b2cb2249710d822a60f83e28860053
+          key: jdk-8u131-x64
+          id: d54c1d3a095b4ff2b6607d096fa80163
     - role: ssl_selfsigned
       ssl_selfsigned_cn: cas.dev
       ssl_selfsigned_aliases:
@@ -70,7 +80,7 @@
       tomcat7_checksum: md5:ca9a50ad51d79282f9ca397514c755d7
       tomcat7_dest: /data/opt/tomcat-7.0.73
       tomcat7_default_user: vagrant
-      tomcat7_default_java_home: "{{ jdks['jdk-8u112-x64'].path }}"
+      tomcat7_default_java_home: "{{ jdks['jdk-8u131-x64'].path }}"
       tomcat7_catalina_bases:
         - name: cas
           path: /data/services/web/cas/tomcat

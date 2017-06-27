@@ -1,0 +1,4 @@
+- hosts: localhost
+  tasks:
+    - name: hello
+      debug: hello {{ inventory_hostname }}

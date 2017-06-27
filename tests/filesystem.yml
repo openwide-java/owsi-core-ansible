@@ -1,6 +1,0 @@
-- hosts: all
-  roles: 
-    - role: filesystem
-      filesystem_postgresql_user: vagrant
-      filesystem_application_user: vagrant
-      filesystem_application_name: application

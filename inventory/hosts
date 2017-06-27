@@ -1,0 +1,6 @@
+localhost ansible_connection=local
+lalmeras
+palma
+owsi-core.vagrant            ansible_ssh_common_args="-F {{ inventory_file | dirname }}/../vagrant/{{ inventory_hostname }}/ssh_config"
+
+[vagrant]

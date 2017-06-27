@@ -1,0 +1,34 @@
+- name: vagrant check
+  stat:
+    path: "{{ _vagrant_path }}"
+  register: r_vagrant_path
+  check_mode: no
+
+- block:
+  - name: vagrant halt
+    shell: vagrant halt
+    args:
+      chdir: "{{ _vagrant_path }}"
+    environment:
+      VAGRANT_DEFAULT_PROVIDER: "{{ _vagrant_provider }}"
+  rescue:
+    - name: vagrant warning
+      debug:
+        msg: <
+          {{ vagrant_host }} ({{ _vagrant_path }}) cannot be destroyed.
+          Try `VboxManage showvminfo {{ _vagrant_host.replace('.') }}` to check
+          current vm status.
+          Try `VBoxManage controlvm {{ _vagrant_host.replace('.') }} poweroff` to
+          stop vm.
+  when: >
+    not r_vagrant_path | failed
+      and r_vagrant_path.stat.exists
+      and r_vagrant_path.stat.isdir
+
+- name: vagrant warning
+  fail:
+    msg: "{{ _vagrant_path }} does not exist or is not a directory; halt skipped."
+  when: >
+    r_vagrant_path | failed
+      or not r_vagrant_path.stat.exists
+      or not r_vagrant_path.stat.isdir

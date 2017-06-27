@@ -1,0 +1,27 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure(2) do |config|
+  config.vm.box = "centos/7"
+  config.vm.hostname = "{{ _vagrant_host }}"
+
+  {% if vagrant_folder | default(False) %}
+  config.vm.synced_folder "..", "/vagrant", type: "rsync"
+  {% endif %}
+
+  config.vm.network "private_network", type: "dhcp"
+
+  # override "default" vagrant vm name
+  config.vm.define "{{ _vagrant_vm_name }}" do |named_vm|
+  end
+
+  config.vm.provider "virtualbox" do |v|
+    v.customize ["modifyvm", :id, "--nictype1", "virtio"]
+    v.memory = {{ vagrant_memory_mb | default(2048) }}
+    v.name = "{{ _vagrant_vm_name }}"
+  end
+
+  config.vm.provision :shell do |shell|
+    shell.inline = "/bin/true"
+  end
+end

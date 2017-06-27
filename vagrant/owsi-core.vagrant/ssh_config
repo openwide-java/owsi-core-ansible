@@ -1,0 +1,10 @@
+Host owsi-core.vagrant
+  HostName 127.0.0.1
+  User vagrant
+  Port 2222
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile /data/home/palma/git/owsi-core-ansible/vagrant/owsi-core.vagrant/.vagrant/machines/owsi-core_vagrant/virtualbox/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL

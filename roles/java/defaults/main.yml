@@ -1,1 +1,1 @@
-java_archive_url_template: "http://download.oracle.com/otn-pub/java/jdk/{{ item.version }}-b{{ item.version_build }}/{{ item.type }}-{{ item.version }}-linux-{{ item.arch }}.tar.gz"
+java_archive_url_template: "http://download.oracle.com/otn-pub/java/jdk/{{ item.version }}-b{{ item.version_build }}/{{ item.id }}/{{ item.type }}-{{ item.version }}-linux-{{ item.arch }}.tar.gz"

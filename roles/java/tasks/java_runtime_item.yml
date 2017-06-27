@@ -7,7 +7,7 @@
       owner: root
       group: root
       headers: "Cookie: oraclelicense=accept-securebackup-cookie"
-  
+
   - block:
     - name: prepare {{ _java_install_destination }} folder
       file:
@@ -16,7 +16,7 @@
         mode: u=rwx,g=rwx,o=rx
         owner: root
         group: root
-  
+
     - name: install {{ item.type }} {{ item.version }}
       unarchive:
         remote_src: true
@@ -24,9 +24,9 @@
         src: "{{ _java_archive_destination }}"
         extra_opts:
           - --strip-components=1
-  
+
     when: ansible_distribution_major_version != "5"
-  
+
   # strip-components is not available in CentOS 5, we need a workaround
   # untar in _java_install_wa_destination
   # find parent of bin folder
@@ -39,32 +39,32 @@
         mode: u=rwx,g=rwx,o=rx
         owner: root
         group: root
-  
+
     - name: install {{ item.type }} {{ item.version }}
       unarchive:
         remote_src: true
         dest: "{{ _java_install_wa_destination }}"
         src: "{{ _java_archive_destination }}"
-  
+
     - name: find {{ item.type }} {{ item.version }}
       command: "find {{ _java_install_wa_destination }} -maxdepth 2 -name bin -type d -exec dirname {} \\;"
       register: find_result
       changed_when: no
       check_mode: no
-  
+
     - name: check find {{ item.type }} {{ item.version }}
       file:
         state: directory
         path: "{{ find_result.stdout_lines[0] }}"
-  
+
     - name: symlink {{ item.type }} {{ item.version }}
       file:
         state: link
         path: "{{ _java_install_destination }}"
         src: "{{ find_result.stdout_lines[0] }}"
-  
+
     when: ansible_distribution_major_version == "5"
-  
+
   - name: provide {{ item.type }} {{ item.version }} path
     set_fact: {"{{ java_results_var }}": "{{ dict([[item.key, {\"path\": _java_install_destination, \"runtime\": item}]]) }}"}
 

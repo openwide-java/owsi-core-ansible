@@ -92,7 +92,7 @@ ENV/
 *.retry
 log/*
 dependencies/*
-.vagrant/
+vagrant/
 .builddir
 
 # vim

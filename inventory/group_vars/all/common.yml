@@ -1,2 +1,58 @@
 ---
-is_vagrant_host: no
+# customizables variables
+playbook_application_name:
+playbook_git_repository_name:
+playbook_context_name: 
+playbook_remote_user: openwide
+playbook_environment: development
+playbook_project_branch: master
+playbook_project_version: 0.1-SNAPSHOT
+
+# customization rarely needed
+playbook_download_target_path: /data/work
+playbook_is_vagrant_host: "{{ 'vagrant' in group_names }}"
+playbook_local_git_repo: ~/git/{{ playbook_git_repository_name }}-livraison
+playbook_local_git_repo_path: "{{ playbook_local_git_repo | expanduser }}"
+playbook_local_java_home: "{{ '~/Documents/apps/jdk-1.8.112-x86_64' | expanduser }}"
+playbook_application_path: /data/services/web/{{ playbook_application_name }}
+playbook_application_tomcat_path: "{{ playbook_application_path }}/tomcat"
+playbook_ssl_certificate: /etc/httpd/certs/{{ playbook_application_name }}.crt
+playbook_ssl_key: /etc/httpd/certs/{{ playbook_application_name }}.key
+playbook_ssl_cacertificate: "{{ playbook_ssl_certificate }}"
+playbook_httpd_ssl_certificate: "{{ playbook_ssl_certificate }}"
+playbook_httpd_ssl_key: "{{ playbook_ssl_key }}"
+playbook_httpd_ssl_cacertificate: "{{ playbook_ssl_cacertificate }}"
+
+playbook_letsencrypt: no
+playbook_letsencrypt_renew_email: "{{ playbook_application_name }}-letsencrypt@lists.projects.openwide.fr"
+
+playbook_front_server_name: "{{ inventory_hostname }}"
+playbook_tomcat_ajp_port: 8010
+playbook_tomcat_http_port: 8081
+playbook_tomcat_shutdown_port: 8006
+playbook_tomcat_ajp_max_threads: 15
+playbook_tomcat_http_max_threads: 5
+
+playbook_postgresql_port: 5433
+playbook_postgresql_host: localhost
+playbook_postgresql_database: "{{ playbook_application_name }}"
+playbook_postgresql_schema: "{{ playbook_postgresql_user }}"
+playbook_postgresql_maxPoolSize: 30
+playbook_postgresql_user: "{{ playbook_application_name }}"
+playbook_postgresql_password: "{{ playbook_application_name }}"
+playbook_smtp_host: smtp.accelance.net
+playbook_smtp_port: 25
+
+playbook_config_properties: {
+  'db.user': "{{ playbook_postgresql_user }}",
+  'db.password': "{{ playbook_postgresql_password }}",
+  'db.jdbcUrl': 'jdbc:pgsql://{{ playbook_postgresql_host }}:{{ playbook_postgresql_port }}/{{ playbook_postgresql_database }}',
+  'db.maxPoolSize': "{{ playbook_postgresql_maxPoolSize }}",
+  'hibernate.defaultSchema': "{{ playbook_postgresql_schema }}",
+  'data.path': '{{ playbook_application_path }}/data',
+  'data.shared-path': '${data.path}',
+  'notification.smtp.host': '{{ playbook_smtp_host }}',
+  'notification.smtp.port': "{{ playbook_smtp_port }}",
+  'wicket.backgroundThreadContextBuilder.url.serverPort': "{{ playbook_tomcat_http_port }}",
+  'task.startMode': 'auto'
+}

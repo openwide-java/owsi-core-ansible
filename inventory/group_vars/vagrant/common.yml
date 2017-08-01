@@ -1,2 +1,4 @@
 ---
-is_vagrant_host: yes
+playbook_remote_user: vagrant
+dh_hostnames:
+  - '@self'

@@ -1,6 +1,0 @@
-_vagrant_root_path: "{{ vagrant_root_path | default(playbook_dir) }}"
-_vagrant_path: "{{ vagrant_path | default('/'.join([_vagrant_root_path, _vagrant_host])) }}"
-_vagrant_host: "{{ vagrant_host | default('vagrant') }}"
-_vagrant_provider: "{{ vagrant_provider | default('virtualbox') }}"
-
-_vagrant_vm_name: "{{ _vagrant_host.replace('.', '_') }}"

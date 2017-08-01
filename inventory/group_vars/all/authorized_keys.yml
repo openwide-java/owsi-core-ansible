@@ -1,0 +1,6 @@
+playbook_ssh_authorized_keys: []
+playbook_ssh_all_authorized_keys:
+  - name: Mathieu Palley
+    username: palma
+    ssh_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCV/t7MIiyXhyyhfOMlZdneIwfRz436M/Q8mmeF7PPZG/VAYgKfXvrATvKqP/E9VTuJ266o6HCL+iVvQHutNYotx8kr1AzFK4RQgnsL1sH3tzkehUHjpANeLo20KdMLl5O7Hri4l/cDHFrqGqy5sgePQwDBjfYiFsPp7MhVYxnFKFAr4wYiEmR6l4uyrkPhxD9qvs35hfU1Va03COvaliqvN5fd7WdyHEy+NvWsFtcK5mXs8KnISwsaBmucx8SrCoI5SzfdnW3t2kLsiCs0Z75enrgrr/P+3NGLcxFcvR8SmUlhYmFFbdwgk86kNsv/zvGZv532+iytwXKsMMVI/9EH palma@p-lyo-fier
+  

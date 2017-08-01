@@ -12,11 +12,9 @@ fi
 
 echo -e "\ncheck virtualenv installation\n"
 if [ -f /usr/bin/apt-get ]; then
-	sudo apt-get install python-virtualenv libssl-dev python-dev gcc libxml2-dev python-lxml
-elif [ -f /usr/bin/yum ]; then
-	sudo yum install -y python-virtualenv python2-virtualenv openssl-devel python-devel gcc libxml2-devel python-lxml
+	sudo apt-get install python-virtualenv libssl-dev python-dev gcc libxml2-dev python-lxml libffi-dev
 elif [ -f /usr/bin/dnf ]; then
-	sudo dnf install python2-virtualenv openssl-devel python-devel gcc libxml2-devel python-lxml
+	sudo dnf install python2-virtualenv openssl-devel python-devel gcc libxml2-devel python-lxml libffi-devel
 fi
 
 mkdir -p .builddir/

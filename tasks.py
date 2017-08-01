@@ -8,6 +8,7 @@ import getpass
 
 import os
 import re
+import shlex
 import json
 try:  # py3
     from shlex import quote
@@ -35,6 +36,27 @@ def _virtualenv(ctx, virtualenv_path=None):
         ctx.run(' '.join(['virtualenv', virtualenv_path]))
         if not check_virtualenv(ctx, virtualenv_path):
             raise Exception('python install fails')
+
+
+@task
+def _sphinx(ctx, virtualenv_path=None, skip=None, version=None):
+    """
+    Install sphinx inside a virtualenv folder.
+    """
+    skip = skip if (skip is not None) \
+        else ctx.sphinx.skip
+    dependencies = ctx.sphinx.dependencies
+    if not skip:
+        virtualenv_path = virtualenv_path or ctx.virtualenv_path
+        package = ctx.sphinx.package_name
+        version = version or ctx.sphinx.version
+        _pip_package(ctx, package, version)
+        for dependency in dependencies:
+            _pip_package(ctx, dependency['name'],
+                         dependency.get('version', None))
+    else:
+        print('sphinx not managed (sphinx.skip: yes)')
+
 
 @task(pre=[_virtualenv])
 def galaxy(ctx, virtualenv_path=None):
@@ -68,46 +90,6 @@ def _ansible(ctx, virtualenv_path=None, skip=None, version=None):
         print('ansible not managed (ansible.skip: yes)')
 
 
-@task
-def _sphinx(ctx, virtualenv_path=None, skip=None, version=None):
-    """
-    Install sphinx inside a virtualenv folder.
-    """
-    skip = skip if (skip is not None) \
-        else ctx.sphinx.skip
-    dependencies = ctx.sphinx.dependencies
-    if not skip:
-        virtualenv_path = virtualenv_path or ctx.virtualenv_path
-        package = ctx.sphinx.package_name
-        version = version or ctx.sphinx.version
-        _pip_package(ctx, package, version)
-        for dependency in dependencies:
-            _pip_package(ctx, dependency['name'],
-                         dependency.get('version', None))
-    else:
-        print('sphinx not managed (sphinx.skip: yes)')
-
-
-@task
-def _recommonmark(ctx, virtualenv_path=None, skip=None, version=None):
-    """
-    Install recommonmark inside a virtualenv folder.
-    """
-    skip = skip if (skip is not None) \
-        else ctx.recommonmark.skip
-    dependencies = ctx.dependencies
-    if not skip:
-        virtualenv_path = virtualenv_path or ctx.virtualenv_path
-        package = ctx.recommonmark.package_name
-        version = version or ctx.recommonmark.version
-        _pip_package(ctx, package, version)
-        for dependency in dependencies:
-            _pip_package(ctx, dependency['name'],
-                         dependency.get('version', None))
-    else:
-        print('recommonmark not managed (recommonmark.skip: yes)')
-
-
 def _pip_package(ctx, package, version=None, virtualenv_path=None):
     """
     Install a pypi package (with pip) inside a virtualenv folder.
@@ -119,7 +101,7 @@ def _pip_package(ctx, package, version=None, virtualenv_path=None):
             raise Exception('{} install fails'.format(package))
 
 
-@task(pre=[_virtualenv, _ansible, _sphinx, _recommonmark, galaxy])
+@task(pre=[_virtualenv, _sphinx, _ansible, galaxy])
 def configure(ctx):
     """
     Trigger virtualenv, ansible initialization.
@@ -151,64 +133,6 @@ def _ansible_playbook(ctx, virtualenv_path=None, playbook=None,
         args.append(quote(json.dumps(extra_vars)))
     ctx.run(_vcommand(virtualenv_path, 'ansible-playbook', *args), pty=True)
 
-
-
-def _docs_makefile(target, ctx, virtualenv_path=None):
-    """
-    Trigger a sphinx Makefile target. Used to delegate all documentation jobs to
-    original sphinx Makefile.
-    """
-    virtualenv_path = virtualenv_path or ctx.virtualenv_path
-    os.environ['PATH'] = \
-        ':'.join([
-            os.path.abspath(os.path.join(virtualenv_path, 'bin')),
-            os.environ['PATH']])
-    args = ['make', '-C', '.', target]
-    ctx.run(' '.join(args), pty=True)
-
-
-@task(pre=[configure])
-def docs(ctx, virtualenv_path=None):
-    """
-    Rebuild documentation.
-    """
-    _docs_makefile('html', ctx, virtualenv_path)
-
-
-@task(name='docs-clean', pre=[configure])
-def docs_clean(ctx, virtualenv_path=None):
-    """
-    Clean generated documentation.
-    """
-    _docs_makefile('clean', ctx, virtualenv_path)
-
-
-@task(name='docs-live', pre=[docs, configure])
-def docs_live(ctx, virtualenv_path=None):
-    """
-    Live build of documentation on each modification. Open a browser with a
-    local server to serve documentation. Opened page is reloaded each time
-    documentation is generated.
-    """
-    virtualenv_path = virtualenv_path or ctx.virtualenv_path
-    os.environ['PATH'] = \
-        ':'.join([
-            os.path.abspath(os.path.join(virtualenv_path, 'bin')),
-            os.environ['PATH']])
-    command = ' '.join([
-        'sphinx-autobuild',
-        '-B',
-        '--ignore', '"*.swp"',
-        '--ignore', '"*.log"',
-        '--ignore', '"*~"',
-        '--ignore', '"*~"',
-        '-b', 'html',
-        os.path.dirname(__file__) + '/docs/source',
-        os.path.dirname(__file__) + '/docs/build/html'
-    ])
-    ctx.run(command, pty=True)
-
-
 def _check_hosts(virtualenv_path):
     """
     Check if user present in hosts file
@@ -231,11 +155,12 @@ def ansible_list_hosts(ctx, limit=None):
     """
     List hosts from inventory
     """
+    virtualenv_path = ctx.virtualenv_path
     inventory_path = os.path.dirname(__file__) + '/inventory/hosts'
-    ansible_cmd = ['ansible', 'all', '-i', inventory_path, '--list-hosts']
+    ansible_args = ['all', '-i', inventory_path, '--list-hosts']
     if limit is not None:
-        ansible_cmd.extend(['-l', limit])
-    hosts = subprocess.check_output(ansible_cmd)
+        ansible_args.extend(['-l', limit])
+    hosts = subprocess.check_output(shlex.split(_vcommand(virtualenv_path, 'ansible', *ansible_args), False, True))
     print hosts
 
 
@@ -267,14 +192,24 @@ def ansible_run(ctx, virtualenv_path=None, playbook=None, check=False, diff=Fals
                       ansible_args=ansible_args, extra_vars=extra_vars_parsed)
 
 
+@task(name='all', pre=[configure])
+def all(ctx, host, ansible_args=''):
+    """
+    Deploy all on provided host
+    """
+    extra_vars = {'playbook_host': host}
+    _ansible_playbook(ctx, playbook='playbooks/all.yml',
+                      ansible_args=ansible_args + ' --ask-become-pass',
+                      extra_vars=extra_vars)
+
 @task(name='up', pre=[configure])
 def vagrant_up(ctx, environment='localhost', ansible_args=''):
     """
     Deploy a complete vagrant environment
     """
     _ansible_playbook(ctx, playbook='playbooks/vagrant-up.yml',
-                      ansible_args=ansible_args + '--ask-become-pass',
-                      extra_vars={'target_host': environment})
+                      ansible_args=ansible_args + ' --ask-become-pass',
+                      extra_vars={'target_host': 'vagrant'})
 
 
 @task(name='destroy', pre=[configure])
@@ -284,7 +219,7 @@ def vagrant_destroy(ctx, environment='localhost', ansible_args=''):
     """
     _ansible_playbook(ctx, playbook='playbooks/vagrant-destroy.yml',
                       ansible_args=ansible_args,
-                      extra_vars={'target_host': environment})
+                      extra_vars={'target_host': 'vagrant'})
 
 
 @task(name='halt', pre=[configure])
@@ -294,7 +229,7 @@ def vagrant_halt(ctx, ansible_args=''):
     """
     _ansible_playbook(ctx, playbook='playbooks/vagrant-halt.yml',
                       ansible_args=ansible_args,
-                      extra_vars={'target_host': environment})
+                      extra_vars={'target_host': 'vagrant'})
 
 
 @task(name='ssh', pre=[configure],
@@ -380,11 +315,108 @@ def _command(command, *args):
     cl.extend(args)
     return ' '.join(cl)
 
+
+def _docs_makefile(target, ctx, virtualenv_path=None):
+    """
+    Trigger a sphinx Makefile target. Used to delegate all documentation jobs to
+    original sphinx Makefile.
+    """
+    virtualenv_path = virtualenv_path or ctx.virtualenv_path
+    os.environ['PATH'] = \
+        ':'.join([
+            os.path.abspath(os.path.join(virtualenv_path, 'bin')),
+            os.environ['PATH']])
+    args = ['make', '-C', 'docs', target]
+    ctx.run(' '.join(args), pty=True)
+
+
+@task(name='build', pre=[configure])
+def docs_build(ctx, virtualenv_path=None):
+    """
+    Rebuild documentation.
+    """
+    _docs_makefile('html', ctx, virtualenv_path)
+
+
+@task(name='clean', pre=[configure])
+def docs_clean(ctx, virtualenv_path=None):
+    """
+    Clean generated documentation.
+    """
+    _docs_makefile('clean', ctx, virtualenv_path)
+
+
+@task(name='live', pre=[docs_build, configure])
+def docs_live(ctx, virtualenv_path=None):
+    """
+    Live build of documentation on each modification. Open a browser with a
+    local server to serve documentation. Opened page is reloaded each time
+    documentation is generated.
+    """
+    virtualenv_path = virtualenv_path or ctx.virtualenv_path
+    os.environ['PATH'] = \
+        ':'.join([
+            os.path.abspath(os.path.join(virtualenv_path, 'bin')),
+            os.environ['PATH']])
+    command = ' '.join([
+        'sphinx-autobuild',
+        '-B',
+        '--ignore', '"*.swp"',
+        '--ignore', '"*.log"',
+        '--ignore', '"*~"',
+        '--ignore', '"*~"',
+        '-b', 'html',
+        os.path.join(os.path.dirname(__file__), 'docs/source'),
+        os.path.join(os.path.dirname(__file__), 'docs/build/html')
+    ])
+    ctx.run(command, pty=True)
+
+@task(name='publish', pre=[docs_clean, docs_build, configure])
+def docs_publish(ctx, virtualenv_path=None):
+    """
+    Push generated documentation to online website.
+
+    Rsync url configured by docs_rsync_target (invoke.yaml)
+    """
+    host_path = ctx.config.docs_rsync_target.split(':')
+    host = host_path[0]
+    path = host_path[1]
+    if not path:
+        raise Error('path null or empty')
+    virtualenv_path = virtualenv_path or ctx.virtualenv_path
+    if not ctx.config.docs_rsync_target:
+        raise Error('Missing docs_rsync_target in configuration')
+    command = ' '.join([
+        'rsync',
+        '-avzr',
+        '--delete',
+        '--omit-dir-times',
+        '--no-owner',
+        '--no-group',
+        '--no-perms',
+        os.path.join(os.path.dirname(__file__), 'docs/build/html/'),
+        '"{}"'.format(ctx.config.docs_rsync_target)
+    ])
+    if not ctx.config.grp_exec:
+        raise Error('Missing grp_exec in configuration')
+    command_ssh = ' '.join([
+        'ssh',
+        '"{}"'.format(ctx.config.docs_rsync_target.split(':')[0]),
+        'find',
+        '"{}"'.format(ctx.config.docs_rsync_target.split(':')[1]),
+        '-user', '$USER', '-exec', 'chgrp', '-R', ctx.config.grp_exec, '{}', ' \\\\\\;'
+    ])
+    ctx.run(command, pty=True)
+    ctx.run(command_ssh, pty=True)
+    if os.path.exists('/usr/bin/xdg-open'):
+        ctx.run('{} {}'.format('/usr/bin/xdg-open', ctx.config.docs_online_path))
+
+
+docs_ns = Collection('docs', docs_build, docs_live, docs_publish, docs_clean)
 vagrant_ns = Collection('vagrant', vagrant_up, vagrant_destroy, vagrant_halt,
                                    vagrant_ssh)
 ansible_ns = Collection('ansible', ansible_list_hosts, ansible_run)
-ns = Collection(configure, galaxy, vagrant_ns, ansible_ns,
-                docs, docs_live, docs_clean)
+ns = Collection(configure, galaxy, vagrant_ns, ansible_ns, docs_ns, all)
 ns.configure({
     'ansible': {
         'package_name': 'ansible'

@@ -5,9 +5,10 @@ ansible_default_args: --verbose
 ansible:
   skip: no
   version: '2.3.0.0'
+
 sphinx:
   skip: no
   version: '1.5.3'
-recommonmark:
-  skip: no
-  version: '0.4.0'
+docs_rsync_target:
+docs_online_path: 
+grp_exec:

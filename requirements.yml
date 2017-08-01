@@ -1,4 +1,9 @@
+---
 # ansible role requirements
-- name: paluh.augeas
-  src: git+https://github.com/paluh/ansible-augeas.git
-  version: origin/master
+- name: vagrant
+  src: git+https://github.com/openwide-java/ansible-vagrant.git
+  version: master
+
+- name: owsi-core-ansible-roles
+  src: git+https://github.com/openwide-java/owsi-core-ansible-roles.git
+  version: master

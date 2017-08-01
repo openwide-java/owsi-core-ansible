@@ -1,6 +1,16 @@
-localhost ansible_connection=local
-lalmeras
+[local]
+localhost
 palma
-owsi-core.vagrant            ansible_ssh_common_args="-F {{ inventory_file | dirname }}/../vagrant/{{ inventory_hostname }}/ssh_config"
 
 [vagrant]
+project-name.vagrant
+
+[heb-production]
+virtual-machine.address ansible_user=root
+
+[vagrant:vars]
+ansible_ssh_common_args="-F {{ inventory_file | dirname }}/../vagrant/{{ inventory_hostname }}/ssh_config"
+
+[local:vars]
+ansible_connection=local
+ansible_host=localhost

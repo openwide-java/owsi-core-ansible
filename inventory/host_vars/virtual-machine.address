@@ -1,0 +1,11 @@
+---
+playbook_front_server_name:
+
+playbook_httpd_ssl_certificate: /etc/letsencrypt/live/{{ playbook_front_server_name }}/cert.pem
+playbook_httpd_ssl_key: /etc/letsencrypt/live/{{ playbook_front_server_name }}/privkey.pem
+playbook_httpd_ssl_cacertificate: /etc/letsencrypt/live/{{ playbook_front_server_name }}/fullchain.pem
+
+playbook_letsencrypt: yes
+
+playbook_ssh_authorized_keys:
+  -

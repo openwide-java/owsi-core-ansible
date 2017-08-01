@@ -1,0 +1,168 @@
+---
+- hosts: localhost
+  gather_facts: yes
+
+
+# initialize vagrant host when needed
+- hosts: "{{ playbook_host }}:&vagrant"
+  gather_facts: no
+  roles:
+    - role: vagrant
+      vagrant_base: 'centos/6'
+      vagrant_task: 'up'
+      vagrant_host: "{{ host_alias | default(inventory_hostname) }}"
+      vagrant_root_path: "{{ inventory_dir | dirname }}/vagrant"
+      delegate_to: localhost
+
+
+- hosts: "{{ playbook_host }}"
+
+  pre_tasks:
+    - name: maven_artifact requisites
+      package:
+        name: python-lxml
+      become: yes
+      become_user: root
+      delegate_to: localhost
+      run_once: yes
+
+  roles:
+    - role: maven_build
+      mb_git_repository: git@git.projects.openwide.fr:open-wide/{{ playbook_git_repository_name }}.git
+      mb_git_branch: "{{  playbook_project_branch }}"
+      mb_check_files:
+        - "{{ playbook_local_git_repo_path }}/{{ playbook_application_name }}-webapp/target/{{ playbook_application_name }}.war"
+      mb_mvn_command: mvn -P{{ playbook_environment }} -DskipTests -am clean package
+      mb_project_path: "{{ playbook_local_git_repo_path }}"
+      mb_rebuild: no
+      mb_mvn_environment:
+        JAVA_HOME: "{{ playbook_local_java_home }}"
+        MAVEN_OPTS: -Xmx2048m
+      delegate_to: localhost
+      run_once: yes
+
+
+- hosts: "{{ playbook_host }}"
+  become: yes
+  become_user: root
+
+  pre_tasks:
+    - name: maven_artifact requisites
+      package:
+        name: python-lxml
+
+  roles:
+
+    - role: utils
+
+    - role: selinux
+      selinux_handle: 'auto'
+
+    - role: authorized_keys
+      ak_users: "{{ playbook_ssh_all_authorized_keys }}"
+      ak_keys: "{{ playbook_ssh_authorized_keys }}"
+
+    - role: config
+      config_name: "{{ playbook_application_name }}"
+      config_user: "{{ playbook_remote_user }}"
+      config_group: "{{ playbook_remote_user }}"
+      config_properties: "{{ playbook_config_properties }}"
+
+    - role: dev_hosts
+      delegate_to: localhost
+      run_once: no
+
+    - role: epel
+
+    - role: httpd
+      httpd_step_install: yes
+      httpd_step_configuration: no
+
+    - role: postgresql
+      postgresql_versions:
+        - "9.6"
+
+    - role: filesystem
+      filesystem_application_name: "{{ playbook_application_name }}"
+      filesystem_application_user: "{{ playbook_remote_user }}"
+
+    - role: java
+      java_download_path: /data/work
+      java_runtime_path: /data/opt
+      java_results_var: jdks
+      java_runtimes:
+        - version: 8u131
+          version_build: 11
+          arch: x64
+          type: jdk
+          checksum: md5:75b2cb2249710d822a60f83e28860053
+          key: jdk-8u131-x64
+          id: d54c1d3a095b4ff2b6607d096fa80163
+
+    - role: ssl_selfsigned
+      ssl_selfsigned_cn: "{{ playbook_front_server_name }}"
+      ssl_selfsigned_aliases: []
+      ssl_selfsigned_certificate: "{{ playbook_ssl_certificate }}"
+      ssl_selfsigned_key: "{{ playbook_ssl_key }}"
+
+    - role: httpd
+      httpd_server_name: "{{ playbook_front_server_name }}"
+      httpd_server_aliases: []
+      httpd_application_name: "{{ playbook_application_name }}"
+      httpd_documentroot: "{{ playbook_application_path }}/site"
+      httpd_ssl_certificate: "{{ playbook_httpd_ssl_certificate }}"
+      httpd_ssl_key: "{{ playbook_httpd_ssl_key }}"
+      httpd_ssl_cacertificate: "{{ playbook_httpd_ssl_cacertificate }}"
+      httpd_context_name: "{{ playbook_context_name }}"
+      httpd_ajp_port: "{{ playbook_tomcat_ajp_port }}"
+
+    - role: letsencrypt
+      letsencrypt_renew_email: "{{ playbook_letsencrypt_renew_email }}"
+      when : "{{ playbook_letsencrypt }}"
+
+    - role: postgresql_cluster
+      postgresql_systemd: no
+      postgresql_initd: yes
+      postgresql_cluster_clusters:
+        - name: main
+          path: /data/services/pgsql/9.6/data
+          postgresql_version: "9.6"
+          port: "{{ playbook_postgresql_port }}"
+          databases:
+            - name: "{{ playbook_postgresql_database }}"
+              owner: "{{ playbook_postgresql_user }}"
+              schemas:
+                - "{{ playbook_postgresql_user }}"
+          users:
+            - username: "{{ playbook_postgresql_user }}"
+              password: "{{ playbook_postgresql_password }}"
+              databases:
+                - name: "{{ playbook_postgresql_database }}"
+                  privileges: CONNECT,CREATE
+
+    - role: tomcat7
+      tomcat7_version: 7.0.73
+      tomcat7_checksum: md5:ca9a50ad51d79282f9ca397514c755d7
+      tomcat7_dest: /data/opt/tomcat-7.0.73
+      tomcat7_default_user: "{{ playbook_remote_user }}"
+      tomcat7_default_java_home: "{{ jdks['jdk-8u131-x64'].path }}"
+      tomcat7_timeout_stop: 30s
+      tomcat7_systemd: no
+      tomcat7_initd: yes
+      tomcat7_download_target_path: "{{ playbook_download_target_path }}"
+      tomcat7_catalina_bases:
+        - name: "{{ playbook_application_name }}"
+          path: "{{ playbook_application_tomcat_path }}"
+          apj_port: "{{ playbook_tomcat_ajp_port }}"
+          http_port: "{{ playbook_tomcat_http_port }}"
+          ajp_max_threads: "{{ playbook_tomcat_ajp_max_threads }}"
+          http_max_threads: "{{ playbook_tomcat_http_max_threads }}"
+          shutdown_port: "{{ playbook_tomcat_shutdown_port }}"
+
+    - role: war
+      war_application_war_src: "{{ playbook_local_git_repo_path }}/{{ playbook_application_name }}-webapp/target/{{ playbook_application_name }}.war"
+      war_application_war_remote_src: no
+      war_application_user: "{{ playbook_remote_user }}"
+      war_tomcat_service: "{{ playbook_application_name }}"
+      war_tomcat_catalina_base: "{{ playbook_application_tomcat_path }}"
+      war_context_name: "{{ playbook_context_name }}"

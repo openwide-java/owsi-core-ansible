@@ -193,11 +193,11 @@ def ansible_run(ctx, virtualenv_path=None, playbook=None, check=False, diff=Fals
 
 
 @task(name='all', pre=[configure])
-def all(ctx, host, ansible_args=''):
+def all(ctx, host, ansible_args='', build_owsi_core=False, force_build=False, skip_build=False):
     """
     Deploy all on provided host
     """
-    extra_vars = {'playbook_host': host}
+    extra_vars = {'playbook_host': host, 'playbook_build_owsi_core': build_owsi_core, 'playbook_force_build': force_build, 'playbook_skip_build': skip_build}
     _ansible_playbook(ctx, playbook='playbooks/all.yml',
                       ansible_args=ansible_args + ' --ask-become-pass',
                       extra_vars=extra_vars)

@@ -8,6 +8,10 @@ playbook_environment: development
 playbook_project_branch: master
 playbook_project_version: 0.1-SNAPSHOT
 
+playbook_owsi_core_branch: dev
+playbook_owsi_core_version: 0.14-SNAPSHOT
+
+
 # customization rarely needed
 playbook_download_target_path: /data/work
 playbook_is_vagrant_host: "{{ 'vagrant' in group_names }}"
@@ -22,6 +26,8 @@ playbook_ssl_cacertificate: "{{ playbook_ssl_certificate }}"
 playbook_httpd_ssl_certificate: "{{ playbook_ssl_certificate }}"
 playbook_httpd_ssl_key: "{{ playbook_ssl_key }}"
 playbook_httpd_ssl_cacertificate: "{{ playbook_ssl_cacertificate }}"
+playbook_local_git_owsi_core: ~/git/owsi-core-livraison
+playbook_local_git_owsi_core_path: "{{ playbook_local_git_owsi_core | expanduser }}"
 
 playbook_letsencrypt: no
 playbook_letsencrypt_renew_email: "{{ playbook_application_name }}-letsencrypt@lists.projects.openwide.fr"

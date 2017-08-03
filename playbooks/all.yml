@@ -8,7 +8,7 @@
   gather_facts: no
   roles:
     - role: vagrant
-      vagrant_base: 'centos/6'
+      vagrant_base: 'centos/7'
       vagrant_task: 'up'
       vagrant_host: "{{ host_alias | default(inventory_hostname) }}"
       vagrant_root_path: "{{ inventory_dir | dirname }}/vagrant"
@@ -28,6 +28,21 @@
 
   roles:
     - role: maven_build
+      mb_git_repository: git@github.com:openwide-java/owsi-core-parent.git
+      mb_git_branch: "{{  playbook_owsi_core_branch }}"
+      mb_check_files:
+        - "{{ mb_project_path }}/owsi-core/owsi-core-components/owsi-core-component-spring/target/owsi-core-component-spring-{{ playbook_owsi_core_version }}.jar"
+      mb_mvn_command: mvn -P{{ playbook_environment }} -DskipTests -am clean package
+      mb_project_path: "{{ playbook_local_git_owsi_core_path }}"
+      mb_rebuild: no
+      mb_mvn_environment:
+        JAVA_HOME: "{{ playbook_local_java_home }}"
+        MAVEN_OPTS: -Xmx2048m
+      delegate_to: localhost
+      run_once: yes
+      when: playbook_build_owsi_core
+
+    - role: maven_build
       mb_git_repository: git@git.projects.openwide.fr:open-wide/{{ playbook_git_repository_name }}.git
       mb_git_branch: "{{  playbook_project_branch }}"
       mb_check_files:
@@ -40,6 +55,7 @@
         MAVEN_OPTS: -Xmx2048m
       delegate_to: localhost
       run_once: yes
+      when: playbook_skip_build == False
 
 
 - hosts: "{{ playbook_host }}"
@@ -121,8 +137,6 @@
       when : "{{ playbook_letsencrypt }}"
 
     - role: postgresql_cluster
-      postgresql_systemd: no
-      postgresql_initd: yes
       postgresql_cluster_clusters:
         - name: main
           path: /data/services/pgsql/9.6/data
@@ -147,8 +161,6 @@
       tomcat7_default_user: "{{ playbook_remote_user }}"
       tomcat7_default_java_home: "{{ jdks['jdk-8u131-x64'].path }}"
       tomcat7_timeout_stop: 30s
-      tomcat7_systemd: no
-      tomcat7_initd: yes
       tomcat7_download_target_path: "{{ playbook_download_target_path }}"
       tomcat7_catalina_bases:
         - name: "{{ playbook_application_name }}"
@@ -163,6 +175,6 @@
       war_application_war_src: "{{ playbook_local_git_repo_path }}/{{ playbook_application_name }}-webapp/target/{{ playbook_application_name }}.war"
       war_application_war_remote_src: no
       war_application_user: "{{ playbook_remote_user }}"
-      war_tomcat_service: "{{ playbook_application_name }}"
+      war_tomcat_service: "tomcat7@{{ playbook_application_name }}"
       war_tomcat_catalina_base: "{{ playbook_application_tomcat_path }}"
       war_context_name: "{{ playbook_context_name }}"

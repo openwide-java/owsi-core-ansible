@@ -43,10 +43,10 @@
       when: playbook_build_owsi_core
 
     - role: maven_build
-      mb_git_repository: git@git.projects.openwide.fr:open-wide/{{ playbook_git_repository_name }}.git
+      mb_git_repository: git@github.com:openwide-java/{{ playbook_git_repository_name }}.git
       mb_git_branch: "{{  playbook_project_branch }}"
       mb_check_files:
-        - "{{ playbook_local_git_repo_path }}/{{ playbook_application_name }}-webapp/target/{{ playbook_application_name }}.war"
+        - "{{ playbook_local_git_repo_path }}/basic-application/{{ playbook_application_name }}-webapp/target/{{ playbook_application_name }}.war"
       mb_mvn_command: mvn -P{{ playbook_environment }} -DskipTests -am clean package
       mb_project_path: "{{ playbook_local_git_repo_path }}"
       mb_rebuild: no
@@ -55,7 +55,22 @@
         MAVEN_OPTS: -Xmx2048m
       delegate_to: localhost
       run_once: yes
-      when: playbook_skip_build == False
+      when: playbook_skip_build == False and playbook_repository_type == "github"
+
+    - role: maven_build
+      mb_git_repository: git@git.projects.openwide.fr:open-wide/{{ playbook_git_repository_name }}.git
+      mb_git_branch: "{{  playbook_project_branch }}"
+      mb_check_files:
+        - "{{ playbook_local_git_repo_path }}/basic-application/{{ playbook_application_name }}-webapp/target/{{ playbook_application_name }}.war"
+      mb_mvn_command: mvn -P{{ playbook_environment }} -DskipTests -am clean package
+      mb_project_path: "{{ playbook_local_git_repo_path }}"
+      mb_rebuild: no
+      mb_mvn_environment:
+        JAVA_HOME: "{{ playbook_local_java_home }}"
+        MAVEN_OPTS: -Xmx2048m
+      delegate_to: localhost
+      run_once: yes
+      when: playbook_skip_build == False and playbook_repository_type == "gitlab"
 
 
 - hosts: "{{ playbook_host }}"
@@ -172,7 +187,7 @@
           shutdown_port: "{{ playbook_tomcat_shutdown_port }}"
 
     - role: war
-      war_application_war_src: "{{ playbook_local_git_repo_path }}/{{ playbook_application_name }}-webapp/target/{{ playbook_application_name }}.war"
+      war_application_war_src: "{{ playbook_local_git_repo_path }}/basic-application/{{ playbook_application_name }}-webapp/target/{{ playbook_application_name }}.war"
       war_application_war_remote_src: no
       war_application_user: "{{ playbook_remote_user }}"
       war_tomcat_service: "tomcat7@{{ playbook_application_name }}"

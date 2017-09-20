@@ -1,11 +1,12 @@
 ---
 # customizables variables
-playbook_application_name:
-playbook_git_repository_name:
-playbook_context_name: 
+playbook_application_name: basic-application
+playbook_git_repository_name: owsi-core-parent
+playbook_context_name: basic-application
+playbook_repository_type: github
 playbook_remote_user: openwide
 playbook_environment: development
-playbook_project_branch: master
+playbook_project_branch: ft-flyway
 playbook_project_version: 0.1-SNAPSHOT
 
 playbook_owsi_core_branch: dev
@@ -33,19 +34,20 @@ playbook_letsencrypt: no
 playbook_letsencrypt_renew_email: "{{ playbook_application_name }}-letsencrypt@lists.projects.openwide.fr"
 
 playbook_front_server_name: "{{ inventory_hostname }}"
-playbook_tomcat_ajp_port: 8010
-playbook_tomcat_http_port: 8081
-playbook_tomcat_shutdown_port: 8006
+playbook_tomcat_ajp_port: 8009
+playbook_tomcat_http_port: 8080
+playbook_tomcat_shutdown_port: 8005
 playbook_tomcat_ajp_max_threads: 15
 playbook_tomcat_http_max_threads: 5
 
-playbook_postgresql_port: 5433
+playbook_application_name_database: "{{ playbook_application_name | replace('-','_')}}"
+playbook_postgresql_port: 5432
 playbook_postgresql_host: localhost
-playbook_postgresql_database: "{{ playbook_application_name }}"
+playbook_postgresql_database: "{{ playbook_application_name_database }}"
 playbook_postgresql_schema: "{{ playbook_postgresql_user }}"
 playbook_postgresql_maxPoolSize: 30
-playbook_postgresql_user: "{{ playbook_application_name }}"
-playbook_postgresql_password: "{{ playbook_application_name }}"
+playbook_postgresql_user: "{{ playbook_application_name_database }}"
+playbook_postgresql_password: "{{ playbook_application_name_database }}"
 playbook_smtp_host: smtp.accelance.net
 playbook_smtp_port: 25
 
